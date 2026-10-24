@@ -4,13 +4,6 @@
 
 
 
-@dataclass(frozen=True)
-class Transaction:
-    transaction_id: str
-    amount: float
-    category: str
-
-
 class PortfolioAnalyzer:
     """Analyze transactions and calculate portfolio statistics."""
 
