@@ -1,4 +1,3 @@
-```python
 """Financial analytics utilities for calculating portfolio metrics."""
 
 from dataclasses import dataclass
@@ -95,4 +94,3 @@ def find_duplicate_transactions(
             seen.add(transaction.transaction_id)
 
     return sorted(duplicates)
-```
