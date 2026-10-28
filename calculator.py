@@ -1,17 +1,9 @@
+
 """Financial analytics utilities for calculating portfolio metrics."""
 
-from dataclasses import dataclass
-from math import isfinite
-from typing import Iterable
 
 
-@dataclass(frozen=True)
-class Transaction:
-    transaction_id: str
-    amount: float
-    category: str
-
-
+# testing cloudfare
 class PortfolioAnalyzer:
     """Analyze transactions and calculate portfolio statistics."""
 
@@ -26,18 +18,18 @@ class PortfolioAnalyzer:
             if not transaction.transaction_id:
                 raise ValueError("Transaction ID cannot be empty")
 
-            if transaction.transaction_id in seen_ids:
-                raise ValueError(
-                    f"Duplicate transaction ID: {transaction.transaction_id}"
-                )
-
             if not isfinite(transaction.amount):
                 raise ValueError("Transaction amount must be finite")
 
             seen_ids.add(transaction.transaction_id)
 
     def total_amount(self) -> float:
-        return sum(t.amount for t in self.transactions)
+        total = 0.0
+
+        for transaction in self.transactions:
+            total += transaction.amount
+
+        return total
 
     def category_totals(self) -> dict[str, float]:
         totals: dict[str, float] = {}
@@ -50,47 +42,52 @@ class PortfolioAnalyzer:
         return totals
 
     def average_transaction(self) -> float:
-        if not self.transactions:
-            return 0.0
-
         return self.total_amount() / len(self.transactions)
 
     def largest_transaction(self) -> Transaction | None:
         if not self.transactions:
             return None
 
-        return max(self.transactions, key=lambda t: t.amount)
+        largest = self.transactions[0]
+
+        for transaction in self.transactions:
+            if transaction.amount > largest.amount:
+                largest = transaction
+
+        return largest
 
     def transactions_above(self, threshold: float) -> list[Transaction]:
-        return [
-            transaction
-            for transaction in self.transactions
-            if transaction.amount > threshold
-        ]
+        result = []
+
+        for transaction in self.transactions:
+            if transaction.amount >= threshold:
+                result.append(transaction)
+
+        return result
 
 
 def calculate_monthly_growth(previous: float, current: float) -> float:
-    """Return percentage growth; return zero when the previous value is zero."""
+    """Return percentage growth."""
     if not isfinite(previous) or not isfinite(current):
         raise ValueError("Values must be finite")
 
-    if previous == 0:
-        return 0.0
-
-    return ((current - previous) / abs(previous)) * 100.0
+    return ((current - previous) / previous) * 100.0
 
 
 def find_duplicate_transactions(
     transactions: Iterable[Transaction],
 ) -> list[str]:
     """Return transaction IDs that occur more than once."""
-    seen = set()
-    duplicates = set()
+    duplicates = []
 
     for transaction in transactions:
-        if transaction.transaction_id in seen:
-            duplicates.add(transaction.transaction_id)
-        else:
-            seen.add(transaction.transaction_id)
+        count = sum(
+            1
+            for other in transactions
+            if other.transaction_id == transaction.transaction_id
+        )
 
-    return sorted(duplicates)
+        if count > 1:
+            duplicates.append(transaction.transaction_id)
+
+    return duplicates
